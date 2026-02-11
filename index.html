@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GUS SAS - Generator RBPMP & RP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        /* Screen Styles */
+        .paper { 
+            background: white; 
+            width: 297mm; /* A4 Landscape width */
+            min-height: 210mm; 
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            padding: 15mm;
+            position: relative;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        
+        /* Table Styles */
+        /* CRITICAL FIX: box-sizing ensures padding doesn't add to width */
+        .doc-table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            table-layout: fixed; 
+            border: 1px solid black; 
+            box-sizing: border-box;
+        }
+        .doc-table th, .doc-table td { 
+            border: 1px solid black !important; 
+            padding: 6px; 
+            word-wrap: break-word; 
+            vertical-align: top; 
+            box-sizing: border-box;
+        }
+        
+        /* Helpers */
+        .page-break { page-break-after: always; }
+        .avoid-break { page-break-inside: avoid; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #10b981; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #047857; }
+
+        /* === PRINT STYLES (Robust) === */
+        @media print {
+            /* 1. Setup Page */
+            @page { 
+                size: A4 landscape; 
+                margin: 10mm; /* Browser margin */
+            }
+
+            /* 2. Hide everything by default */
+            body > * {
+                display: none !important;
+            }
+
+            /* 3. Reset Body */
+            body {
+                margin: 0;
+                padding: 0;
+                background: white !important;
+                overflow: visible !important;
+            }
+
+            /* 4. Show ONLY the output area and its children */
+            /* Note: We target the specific container ID */
+            body > #root {
+                display: block !important;
+            }
+            #root > div {
+                display: none !important; /* Hide direct children of root (like input form container) */
+            }
+            /* Re-display the print container wrapper */
+            #root > div:has(#exportWrapper), 
+            #root > div > #outputArea {
+                display: block !important;
+                visibility: visible !important;
+            }
+
+            /* 5. Style the Export Wrapper for Print */
+            #exportWrapper {
+                display: block !important;
+                visibility: visible !important;
+                position: relative;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+                overflow: visible !important;
+            }
+
+            /* 6. Reset Paper Styling for Print */
+            .paper { 
+                width: 100% !important; 
+                margin: 0 !important; 
+                padding: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                min-height: auto !important;
+                page-break-after: always; /* Force break between RBPMP and RP */
+            }
+
+            .paper:last-child {
+                page-break-after: auto;
+            }
+
+            /* 7. Hide No-Print Elements explicitly */
+            .no-print, header, .input-section, button {
+                display: none !important;
+            }
+            
+            /* 8. Table Handling */
+            table, tr, td, th, tbody, thead, tfoot {
+                page-break-inside: auto !important;
+            }
+            tr {
+                page-break-inside: avoid !important;
+            }
+
+            /* 9. Color Accuracy */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color: black !important;
+            }
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.40.0"
+  }
+}
+</script>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans text-slate-900">
+    <div id="root"></div>
+</body>
+</html>
