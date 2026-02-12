@@ -49,7 +49,6 @@ const App: React.FC = () => {
 
       const result = await generateCurriculum(prompt, fileData.base64, fileData.mimeType);
       
-      // Merge prompt provided data into result if missing
       const finalData: CurriculumData = {
         ...result,
         nama_pelatihan: formData.trainingName || result.nama_pelatihan,
@@ -90,20 +89,28 @@ const App: React.FC = () => {
       const clone = element.cloneNode(true) as HTMLElement;
 
       // 2. Setup Container for PDF Generation
-      // FIX: Use exact Printable Area width for A4 Landscape.
-      // A4 Landscape = 297mm width.
-      // Margins = 10mm left + 10mm right = 20mm total.
-      // Safe Content Width = 297 - 20 = 277mm.
-      // We set container to EXACTLY 277mm so html2canvas renders only what fits.
-      const printableWidth = '277mm';
+      // Kita gunakan lebar sedikit lebih kecil (265mm) dari area cetak (277mm)
+      // untuk memberikan margin keamanan agar garis tidak terpotong.
+      const contentWidth = '270mm';
       
       const container = document.createElement('div');
       container.style.position = 'absolute';
       container.style.top = '-10000px';
       container.style.left = '0';
-      container.style.width = printableWidth; 
+      container.style.width = '297mm'; // Full A4 Landscape width
       container.style.background = '#fff';
-      container.appendChild(clone);
+      
+      // Menambahkan wrapper internal untuk scaling
+      const innerWrapper = document.createElement('div');
+      innerWrapper.style.width = contentWidth;
+      innerWrapper.style.margin = '0 auto';
+      innerWrapper.style.padding = '5mm 0';
+      innerWrapper.style.boxSizing = 'border-box';
+      innerWrapper.style.transform = 'scale(0.97)'; // REDUCE PERCENTAGE (Sesuai request user)
+      innerWrapper.style.transformOrigin = 'top center';
+      
+      innerWrapper.appendChild(clone);
+      container.appendChild(innerWrapper);
       document.body.appendChild(container);
 
       // 3. Apply Styles to Clone for perfect fit
@@ -121,26 +128,32 @@ const App: React.FC = () => {
         p.style.width = '100%'; 
         p.style.minHeight = 'auto'; 
         p.style.boxSizing = 'border-box';
-        
-        // Remove padding inside the paper to maximize table width usage
-        p.style.padding = '0'; 
+        p.style.padding = '2mm'; // Memberi padding internal kecil agar teks tidak nempel garis luar
         
         if (i < papers.length - 1) {
             p.style.pageBreakAfter = 'always';
         }
       }
 
+      // Pastikan semua tabel di dalam clone memiliki border yang utuh
+      const tables = clone.querySelectorAll('table');
+      tables.forEach(table => {
+        (table as HTMLElement).style.border = '1.2px solid black';
+        (table as HTMLElement).style.width = '100%';
+        (table as HTMLElement).style.borderCollapse = 'collapse';
+      });
+
       // 4. Html2Pdf Options
       const opt = {
-        margin: [10, 10, 10, 10], // Standard A4 Margins (mm)
+        margin: [10, 10, 10, 10], // top, left, bottom, right in mm
         filename: `GUSSAS_${formData.mataPelatihan || 'Dokumen'}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
-          scale: 2, 
+          scale: 2.5, // Meningkatkan DPI untuk ketajaman garis
           useCORS: true,
           scrollY: 0,
-          // Do not set windowWidth hardcoded, let it inherit from the 277mm container
-          letterRendering: true
+          letterRendering: true,
+          windowWidth: 1200 // Memaksa lebar virtual agar render konsisten
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
         pagebreak: { mode: ['css', 'legacy'] }
@@ -148,7 +161,7 @@ const App: React.FC = () => {
 
       // 5. Execute
       // @ts-ignore
-      await window.html2pdf().set(opt).from(clone).save();
+      await window.html2pdf().set(opt).from(container).save();
 
       // 6. Cleanup
       document.body.removeChild(container);
@@ -229,7 +242,6 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Added overflow-visible explicitly for print/pdf capture context */}
             <div className="preview-container bg-slate-700/50 p-4 lg:p-8 rounded-b-lg overflow-x-auto print:bg-white print:p-0 print:overflow-visible">
               <DocumentPreview data={generatedData} formData={formData} />
             </div>

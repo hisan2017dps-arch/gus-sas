@@ -21,16 +21,17 @@
         }
         
         /* Table Styles */
-        /* CRITICAL FIX: box-sizing ensures padding doesn't add to width */
+        /* Menggunakan border 1.5pt agar lebih terlihat jelas saat di-export ke PDF */
         .doc-table { 
             border-collapse: collapse; 
             width: 100%; 
             table-layout: fixed; 
-            border: 1px solid black; 
+            border: 1.2px solid black; 
             box-sizing: border-box;
+            margin: 0;
         }
         .doc-table th, .doc-table td { 
-            border: 1px solid black !important; 
+            border: 1.2px solid black !important; 
             padding: 6px; 
             word-wrap: break-word; 
             vertical-align: top; 
@@ -49,18 +50,15 @@
 
         /* === PRINT STYLES (Robust) === */
         @media print {
-            /* 1. Setup Page */
             @page { 
                 size: A4 landscape; 
-                margin: 10mm; /* Browser margin */
+                margin: 10mm;
             }
 
-            /* 2. Hide everything by default */
             body > * {
                 display: none !important;
             }
 
-            /* 3. Reset Body */
             body {
                 margin: 0;
                 padding: 0;
@@ -68,62 +66,52 @@
                 overflow: visible !important;
             }
 
-            /* 4. Show ONLY the output area and its children */
-            /* Note: We target the specific container ID */
             body > #root {
                 display: block !important;
             }
             #root > div {
-                display: none !important; /* Hide direct children of root (like input form container) */
+                display: none !important; 
             }
-            /* Re-display the print container wrapper */
             #root > div:has(#exportWrapper), 
             #root > div > #outputArea {
                 display: block !important;
                 visibility: visible !important;
             }
 
-            /* 5. Style the Export Wrapper for Print */
             #exportWrapper {
                 display: block !important;
                 visibility: visible !important;
-                position: relative;
                 width: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: white !important;
-                overflow: visible !important;
             }
 
-            /* 6. Reset Paper Styling for Print */
             .paper { 
                 width: 100% !important; 
                 margin: 0 !important; 
-                padding: 0 !important;
+                padding: 5mm !important; /* Memberi sedikit ruang aman di dalam kertas */
                 border: none !important;
                 box-shadow: none !important;
                 min-height: auto !important;
-                page-break-after: always; /* Force break between RBPMP and RP */
+                page-break-after: always;
             }
 
             .paper:last-child {
                 page-break-after: auto;
             }
 
-            /* 7. Hide No-Print Elements explicitly */
             .no-print, header, .input-section, button {
                 display: none !important;
             }
             
-            /* 8. Table Handling */
-            table, tr, td, th, tbody, thead, tfoot {
+            table, tr, td, th {
                 page-break-inside: auto !important;
             }
             tr {
                 page-break-inside: avoid !important;
             }
 
-            /* 9. Color Accuracy */
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
@@ -138,8 +126,8 @@
     "react": "https://esm.sh/react@^19.2.4",
     "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
     "@google/genai": "https://esm.sh/@google/genai@^1.40.0",
-    "vite": "https://esm.sh/vite@^7.3.1",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4"
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4",
+    "vite": "https://esm.sh/vite@^7.3.1"
   }
 }
 </script>
